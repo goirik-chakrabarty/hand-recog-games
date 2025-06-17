@@ -37,7 +37,8 @@ class HandDetector:
                                         max_num_hands=self.maxHands,
                                         model_complexity=modelComplexity,
                                         min_detection_confidence=self.detectionCon,
-                                        min_tracking_confidence=self.minTrackCon)
+                                        min_tracking_confidence=self.minTrackCon,
+                                        )
 
         self.mpDraw = mp.solutions.drawing_utils
         self.tipIds = [4, 8, 12, 16, 20]
@@ -105,11 +106,11 @@ class HandDetector:
                                                self.mpHands.HAND_CONNECTIONS)
                     cv2.rectangle(img, (bbox[0] - 20, bbox[1] - 20),
                                   (bbox[0] + bbox[2] + 20, bbox[1] + bbox[3] + 20),
-                                  self.PLAYER_COLORS[player_id], 2)
+                                  self.PLAYER_COLORS[player_id%6], 2)
                     cv2.putText(img, myHand["type"], (bbox[0] - 30, bbox[1] - 30), cv2.FONT_HERSHEY_PLAIN,
-                                2, self.PLAYER_COLORS[player_id], 2)
+                                2, self.PLAYER_COLORS[player_id%6], 2)
                     cv2.putText(img, f"Player {player_id + 1}", (bbox[0] - 60, bbox[1] - 60), cv2.FONT_HERSHEY_PLAIN,
-                                2, self.PLAYER_COLORS[player_id], 2)
+                                2, self.PLAYER_COLORS[player_id%6], 2)
 
         return allHands, img
 

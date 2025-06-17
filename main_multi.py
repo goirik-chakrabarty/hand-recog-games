@@ -1,15 +1,15 @@
 import argparse
 import cv2
 from HandTrackingModule import HandDetector
-from directkeys_mac import PressKey, ReleaseKey
-from directkeys_mac import SPACE_KEY as space_pressed
+from directkeys_linux import PressKey, ReleaseKey
+from directkeys_linux import SPACE_KEY as space_pressed
 import time
 import pynput
 import numpy as np
 
 # ---- Argument Parsing ---- #
 parser = argparse.ArgumentParser(description="Hand gesture control script.")
-parser.add_argument('--device', type=int, default=0, choices=[0,1,2], help='Video capture device ID (0, 1, 2)')
+parser.add_argument('--device', type=str, default=None, help='Video capture device ID')
 parser.add_argument('--half', type=str, default='left', choices=['left', 'right'], help='Which half of the frame to process')
 parser.add_argument('--playerid', type=int, default=1, choices=range(1, 7), help='Player ID (1 to 6)')
 args = parser.parse_args()
@@ -19,7 +19,7 @@ keyboard = pynput.keyboard.Controller()
 PressKey = keyboard.press
 ReleaseKey = keyboard.release
 
-detector = HandDetector(detectionCon=0.7, maxHands=6)
+detector = HandDetector(detectionCon=0.7, maxHands=1)
 space_key_pressed = space_pressed
 
 ACTIONS = [
@@ -30,13 +30,20 @@ ACTIONS = [
     ('5', 't',  'g', 'b'),   # P5
     ('6', 'y',  'h', 'n')    # P6
 ]
-FRAME_DIM = (1280, 720)
+FRAME_DIM = (640, 480)
 current_key_pressed = set()
 
 # ---- Initialize Video ---- #
+# Explicitly specify the backend when opening the camera.  On some
+# systems OpenCV's default backend fails to initialise a second camera
+# when multiple devices are connected.  CAP_DSHOW is broadly supported
+# on Windows and prevents errors like "can't open camera by index".
 video = cv2.VideoCapture(args.device)
 video.set(3, FRAME_DIM[0])
 video.set(4, FRAME_DIM[1])
+
+if not video.isOpened():
+    raise RuntimeError(f"Failed to open video device {args.device}")
 
 prev_key_pressed = set()
 
@@ -97,7 +104,7 @@ while True:
 
         prev_key_pressed = current_key_pressed.copy()
 
-    cv2.imshow("Frame", frame)
+    cv2.imshow(f"Frame-{playerid}", frame)
     k = cv2.waitKey(1)
     if k == ord('q'):
         break
